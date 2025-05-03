@@ -222,6 +222,7 @@ type Client struct {
 	Search             *SearchService
 	SecretScanning     *SecretScanningService
 	SecurityAdvisories *SecurityAdvisoriesService
+	SubIssues          *SubIssuesService
 	Teams              *TeamsService
 	Users              *UsersService
 }
@@ -458,6 +459,7 @@ func (c *Client) initialize() {
 	c.Search = (*SearchService)(&c.common)
 	c.SecretScanning = (*SecretScanningService)(&c.common)
 	c.SecurityAdvisories = (*SecurityAdvisoriesService)(&c.common)
+	c.SubIssues = (*SubIssuesService)(&c.common)
 	c.Teams = (*TeamsService)(&c.common)
 	c.Users = (*UsersService)(&c.common)
 }
