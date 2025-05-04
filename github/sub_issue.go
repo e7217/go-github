@@ -49,37 +49,96 @@ type SubIssue struct {
 	ActiveLockReason *string `json:"active_lock_reason,omitempty"`
 }
 
-// AddSubIssueRequest, ReprioritizeSubIssueRequest 등 요청 구조체 정의
+// AddSubIssueRequest represents a request to add a sub-issue.
 type AddSubIssueRequest struct {
 	SubIssueID int `json:"sub_issue_id"`
 }
 
+// Add a sub-issue to an issue.
+//
+// GitHub API docs: https://docs.github.com/en/rest/issues/sub-issues?apiVersion=2022-11-28#add-sub-issue
+//
+//meta:operation POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues
+func (s *SubIssuesService) Add(ctx context.Context, owner string, repo string, issueNumber int, subIssueID int) (*Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/issues/%d/sub_issues", owner, repo, issueNumber)
+	req, err := s.client.NewRequest("POST", u, &AddSubIssueRequest{
+		SubIssueID: subIssueID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: remove custom Accept header when this API fully launch.
+	req.Header.Set("Accept", mediaTypeReactionsPreview)
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// Remove a sub-issue from an issue.
+//
+// GitHub API docs: https://docs.github.com/en/rest/issues/sub-issues?apiVersion=2022-11-28#remove-sub-issue
+//
+//meta:operation DELETE /repos/{owner}/{repo}/issues/{issue_number}/sub_issues/{sub_issue_id}
+func (s *SubIssuesService) Remove(ctx context.Context, owner string, repo string, issueNumber int, subIssueID int) (*Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/issues/%d/sub_issues/%d", owner, repo, issueNumber, subIssueID)
+	req, err := s.client.NewRequest("DELETE", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: remove custom Accept header when this API fully launch.
+	req.Header.Set("Accept", mediaTypeReactionsPreview)
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// ReprioritizeSubIssueRequest represents a request to reprioritize a sub-issue.
 type ReprioritizeSubIssueRequest struct {
 	SubIssueID int `json:"sub_issue_id"`
-	AfterID    int `json:"after_id"`
+	AfterID    int `json:"after_id,omitempty"`
 }
 
-// Add, Remove, List, Reprioritize 메서드 정의 예시
-func (s *SubIssuesService) Add(ctx context.Context, owner, repo string, issueNumber int, req *AddSubIssueRequest) (*Issue, *Response, error) {
-	u := fmt.Sprintf("repos/%v/%v/issues/%d/sub_issues", owner, repo, issueNumber)
-	// 실제 요청 코드 작성
-	return nil, nil, nil
-}
-
-func (s *SubIssuesService) Remove(ctx context.Context, owner, repo string, issueNumber, subIssueID int) (*Response, error) {
-	u := fmt.Sprintf("repos/%v/%v/issues/%d/sub_issues/%d", owner, repo, issueNumber, subIssueID)
-	// 실제 요청 코드 작성
-	return nil, nil
-}
-
-func (s *SubIssuesService) List(ctx context.Context, owner, repo string, issueNumber int) ([]*Issue, *Response, error) {
-	u := fmt.Sprintf("repos/%v/%v/issues/%d/sub_issues", owner, repo, issueNumber)
-	// 실제 요청 코드 작성
-	return nil, nil, nil
-}
-
-func (s *SubIssuesService) Reprioritize(ctx context.Context, owner, repo string, issueNumber int, req *ReprioritizeSubIssueRequest) (*Issue, *Response, error) {
+// Reprioritize a sub-issue in an issue.
+//
+// GitHub API docs: https://docs.github.com/en/rest/issues/sub-issues?apiVersion=2022-11-28#reprioritize-sub-issue
+//
+//meta:operation POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues/priority
+func (s *SubIssuesService) Reprioritize(ctx context.Context, owner string, repo string, issueNumber int, subIssueID int, afterID int) (*Response, error) {
 	u := fmt.Sprintf("repos/%v/%v/issues/%d/sub_issues/priority", owner, repo, issueNumber)
-	// 실제 요청 코드 작성
-	return nil, nil, nil
+	req, err := s.client.NewRequest("POST", u, &ReprioritizeSubIssueRequest{
+		SubIssueID: subIssueID,
+		AfterID:    afterID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: remove custom Accept header when this API fully launch.
+	req.Header.Set("Accept", mediaTypeReactionsPreview)
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// Get sub issues in an issue.
+//
+// GitHub API docs: https://docs.github.com/en/rest/issues/sub-issues?apiVersion=2022-11-28#list-sub-issues
+//
+//meta:operation GET /repos/{owner}/{repo}/issues/{issue_number}/sub_issues
+func (s *SubIssuesService) Get(ctx context.Context, owner string, repo string, issueNumber int) ([]*SubIssue, *Response, error) {
+	u := fmt.Sprintf("repos/%v/%v/issues/%d/sub_issues", owner, repo, issueNumber)
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// TODO: remove custom Accept header when this API fully launch.
+	req.Header.Set("Accept", mediaTypeReactionsPreview)
+
+	subIssues := new([]*SubIssue)
+	resp, err := s.client.Do(ctx, req, subIssues)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return *subIssues, resp, nil
 }
